@@ -124,7 +124,7 @@ if (reviewsCount === 0) {
 
   stmtReview.run(1, 5, 'Отличный зал, всё понравилось.');
   stmtReview.run(2, 4, "Хорошее помещение.");
-  stmtReview.run(3, 3, "Всё прошло отлично.");
+  stmtReview.run(2, 3, "Всё прошло отлично.");
 }
 
 const result = db
