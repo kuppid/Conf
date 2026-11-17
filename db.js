@@ -67,8 +67,8 @@ if (count === 0) {
        VALUES (?, ?, ?) 
     `);
   stmtRoom.run("Конференц-зал", "конференц-зал", "20");
-  stmtRoom.run("Переговорная", "переговорная", "10");
-  stmtRoom.run("Опенспейс", "опенспейс", "75");
+  stmtRoom.run("Переговорная", "переговорная", "6");
+  stmtRoom.run("Опенспейс", "опенспейс", "12");
   console.log("Тестовые комнаты добавлены");
 }
 
@@ -118,9 +118,9 @@ if (reviewsCount === 0) {
     VALUES (?, ?, ?)
     `);
 
-  stmtReview.run(1, 5, "Отличная переговорная, всё понравилось!");
-  stmtReview.run(2, 4, "Хороший лекционный зал, но было шумно!");
-  stmtReview.run(3, 3, "Нормально, но кондиционер не работал!");
+  stmtReview.run(1, 5, 'Отличный зал, всё понравилось.');
+  stmtReview.run(2, 4, "Хорошее помещение.");
+  stmtReview.run(3, 3, "Всё прошло отлично.");
 }
 
 const result = db
@@ -143,4 +143,105 @@ const result = db
     `,
   )
   .all();
+
+  class UserModel {
+  constructor() {
+    this.table = "users";
+  }
+  findById(id) {
+    return db.prepare(`SELECT * FROM ${this.table} WHERE id = ?`).get(id);
+  }
+  findByLogin(login) {
+    return db.prepare(`SELECT * FROM ${this.table} WHERE login = ?`).get(login);
+  }
+
+  findALL() {
+    return db.prepare(`SELECT * FROM ${this.table}`).all();
+  }
+
+  count() {
+    return db.prepare(`SELECT COUNT(*) as count FROM ${this.table}`).get()
+      .count;
+  }
+
+  exists(login) {
+    const user = db
+      .prepare(`SELECT id FROM ${this.table} WHERE login = ?`)
+      .get(login);
+  }
+}
+
+class RoomModel {
+  constructor() {
+    this.table = "rooms";
+  }
+
+  findAll() {
+    return db.prepare(`SELECT * FROM ${this.table}`).all();
+  }
+
+  findById(id) {
+    return db.prepare(`SELECT * FROM ${this.table} WHERE id = ? `).get(id);
+  }
+
+  findByType(type) {
+    return db.prepare(`SELECT * FROM ${this.table} WHERE type = ?`).all(type);
+  }
+
+  count() {
+    return db.prepare(`SELECT COUNT(*) as count FROM ${this.table}`).get()
+      .count;
+  }
+}
+
+class RequestModel {
+  constructor() {
+    this.table = "requests";
+  }
+
+  findById(id) {
+    return db.prepare(`SELECT * FROM ${this.table} WHERE id = ? `).get(id);
+  }
+
+  findByUser(userid) {
+    return db
+      .prepare(
+        `
+        SELECT ${this.table}.*, rooms.name AS room_name
+        FROM ${this.table}
+        JOIN rooms ON ${this.table}. room_id=rooms.id
+        WHERE ${this.table}.user_id = ?
+        `,
+      )
+      .all(userid);
+  }
+
+  findAllDetailed() {
+    return db
+      .prepare(
+        `
+        SELECT ${this.table}.*,
+        users.fio AS user_name,
+        rooms.name AS room_name,
+        rooms.type AS room_type
+        FROM ${this.table}
+        JOIN users ON ${this.table}.user_id=users.id
+        JOIN rooms ON ${this.table}.room_id=rooms.id
+        `,
+      )
+      .all();
+  }
+  count() {
+    return db.prepare(`SELECT COUNT(*) as count FROM ${this.table}`).get()
+      .count;
+  }
+  updateStatus(id, status) {
+    return db
+      .prepare(`UPDATE ${this.table} SET status = ? WHERE id = ?`)
+      .run(status, id);
+  }
+}
+export const User = new UserModel();
+export const Room = new RoomModel();
+export const Request = new RequestModel();
 export default db;
